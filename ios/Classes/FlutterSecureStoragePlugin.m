@@ -13,7 +13,7 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
 
 - (instancetype)init {
     self = [super init];
-    if (self){
+    if (self) {
         self.query = @{
                        (__bridge id)kSecClass :(__bridge id)kSecClassGenericPassword,
                        (__bridge id)kSecAttrService :KEYCHAIN_SERVICE,
@@ -120,49 +120,53 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
         result(FlutterMethodNotImplemented);
 }
 
-- (void)write:(NSString *)value forKey:(NSString *)key {
+- (OSStatus)write:(NSString *)value forKey:(NSString *)key {
     NSMutableDictionary *search = [self.query mutableCopy];
     search[(__bridge id)kSecAttrAccount] = key;
     search[(__bridge id)kSecMatchLimit] = (__bridge id)kSecMatchLimitOne;
-    
+
     OSStatus status;
     status = SecItemCopyMatching((__bridge CFDictionaryRef)search, NULL);
-    if (status == noErr){
+    if (status == noErr) {
         search[(__bridge id)kSecMatchLimit] = nil;
-        
+
         NSDictionary *update = @{(__bridge id)kSecValueData: [value dataUsingEncoding:NSUTF8StringEncoding]};
-        
+
         status = SecItemUpdate((__bridge CFDictionaryRef)search, (__bridge CFDictionaryRef)update);
-        if (status != noErr){
+        if (status != noErr) {
             NSLog(@"SecItemUpdate status = %d", status);
         }
-    }else{
+    } else {
         search[(__bridge id)kSecValueData] = [value dataUsingEncoding:NSUTF8StringEncoding];
         search[(__bridge id)kSecMatchLimit] = nil;
-        
+
         status = SecItemAdd((__bridge CFDictionaryRef)search, NULL);
-        if (status != noErr){
+        if (status != noErr) {
             NSLog(@"SecItemAdd status = %d", status);
         }
     }
+
+    return status;
 }
 
 - (NSString *)read:(NSString *)key {
     NSMutableDictionary *search = [self.query mutableCopy];
     search[(__bridge id)kSecAttrAccount] = key;
     search[(__bridge id)kSecReturnData] = (__bridge id)kCFBooleanTrue;
-    
+
     CFDataRef resultData = NULL;
-    
+
     OSStatus status;
     status = SecItemCopyMatching((__bridge CFDictionaryRef)search, (CFTypeRef*)&resultData);
     NSString *value;
-    if (status == noErr){
+    if (status == noErr) {
         NSData *data = (__bridge NSData*)resultData;
         value = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        
+    } else {
+        NSLog(@"SecItemCopyMatching status = %d", status);
+        // TODO: Do we want to return the status? How?
     }
-    
+
     return value;
 }
 
@@ -181,9 +185,12 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
     NSMutableDictionary *search = [self.query mutableCopy];
     search[(__bridge id)kSecAttrAccount] = key;
     search[(__bridge id)kSecReturnData] = (__bridge id)kCFBooleanTrue;
-    
-    SecItemDelete((__bridge CFDictionaryRef)search);
-}
 
+    OSStatus status;
+    status = SecItemDelete((__bridge CFDictionaryRef)search);
+    if (status != noErr) {
+        NSLog(@"SecItemDelete status = %d", status);
+    }
+}
 
 @end
