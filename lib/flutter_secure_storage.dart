@@ -20,6 +20,12 @@ class FlutterSecureStorage {
     return _channel.invokeMethod('read', {'key': key});
   }
 
+  Future<List<String>> readAll(List<String> keys) {
+    if (keys == null) throw new ArgumentError.notNull('keys');
+    if (keys.isEmpty) throw new ArgumentError('keys must not be empty');
+    return _channel.invokeMethod('readAll', {'keys': keys});
+  }
+
   Future<Null> delete(String key) {
     if (key == null) throw new ArgumentError.notNull('key');
     return _channel.invokeMethod('delete', {'key': key});

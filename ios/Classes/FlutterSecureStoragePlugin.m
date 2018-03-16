@@ -3,8 +3,6 @@
 static NSString *const KEYCHAIN_SERVICE = @"flutter_secure_storage_service";
 static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_storage";
 
-static NSString *const InvalidParameters = @"Invalid parameter's type";
-
 @interface FlutterSecureStoragePlugin()
 
 @property (strong, nonatomic) NSDictionary *query;
@@ -32,35 +30,94 @@ static NSString *const InvalidParameters = @"Invalid parameter's type";
     [registrar addMethodCallDelegate:instance channel:channel];
 }
 
+- (NSString *)getKey:(NSDictionary *)args result:(FlutterResult)result {
+    NSString *key = args[@"key"];
+    if (![key isKindOfClass:[NSString class]]) {
+        result([FlutterError errorWithCode:@"argument_error"
+                                   message:@"key must be a string"
+                                   details:nil]);
+        return nil;
+    }
+    return key;
+}
+
+- (NSArray<NSString *> *)getKeys:(NSDictionary *)args result:(FlutterResult)result {
+    NSArray<NSString *> *keys = args[@"keys"];
+    if (![keys isKindOfClass:[NSArray class]]) {
+        result([FlutterError errorWithCode:@"argument_error"
+                                   message:@"keys must be an array"
+                                   details:nil]);
+        return nil;
+    }
+
+    for (NSString *key in keys) {
+        if (![key isKindOfClass:[NSString class]]) {
+            result([FlutterError errorWithCode:@"argument_error"
+                                       message:@"all keys must be strings"
+                                       details:nil]);
+            return nil;
+        }
+    }
+
+    return keys;
+}
+
+- (NSString *)getValue:(NSDictionary *)args result:(FlutterResult)result {
+    NSString *value = args[@"value"];
+    if (![value isKindOfClass:[NSString class]]) {
+        result([FlutterError errorWithCode:@"argument_error"
+                                   message:@"value must be a string"
+                                   details:nil]);
+        return nil;
+    }
+    return value;
+}
+
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-    NSDictionary *arguments = [call arguments];
-    NSString *key = arguments[@"key"];
-    if (![key isKindOfClass:[NSString class]]){
-        result(InvalidParameters);
+    if (call.arguments == nil) {
+        result([FlutterError errorWithCode:@"no_arguments"
+                                   message:@"No arguments"
+                                   details:nil]);
         return;
     }
+
+    NSDictionary *args = call.arguments;
+
     if ([@"read" isEqualToString:call.method]) {
+        NSString *key = [self getKey:args result:result];
+        if (key == nil) return;
+
         NSString *value = [self read:key];
-        
+
         result(value);
     } else
     if ([@"write" isEqualToString:call.method]) {
-        NSString *value = arguments[@"value"];
-        if (![value isKindOfClass:[NSString class]]){
-            result(InvalidParameters);
-            return;
-        }
-        
+        NSString *key = [self getKey:args result:result];
+        if (key == nil) return;
+        NSString *value = [self getValue:args result:result];
+        if (value == nil) return;
+
         [self write:value forKey:key];
-        
+
         result(nil);
-    } else if ([@"delete" isEqualToString:call.method]) {
+    } else
+    if ([@"delete" isEqualToString:call.method]) {
+        NSString *key = [self getKey:args result:result];
+        if (key == nil) return;
+
         [self delete:key];
-        
+
         result(nil);
-    }else {
+    } else
+    if ([@"readAll" isEqualToString:call.method]) {
+        NSArray<NSString *> *keys = [self getKeys:args result:result];
+        if (keys == nil) return;
+
+        NSArray<NSString *> *values = [self readAll:keys];
+
+        result(values);
+    } else
         result(FlutterMethodNotImplemented);
-    }
 }
 
 - (void)write:(NSString *)value forKey:(NSString *)key {
@@ -107,6 +164,17 @@ static NSString *const InvalidParameters = @"Invalid parameter's type";
     }
     
     return value;
+}
+
+- (NSArray<NSString *> *)readAll:(NSArray<NSString *> *)keys {
+    NSMutableArray<NSString *> *values = [NSMutableArray new];
+
+    for (NSString *key in keys) {
+        id value = [self read:key] ?: [NSNull null];
+        [values addObject:value];
+    }
+
+    return values;
 }
 
 - (void)delete:(NSString *)key {
