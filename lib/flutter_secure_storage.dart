@@ -15,6 +15,14 @@ class FlutterSecureStorage {
     });
   }
 
+  Future<Null> writeMap(Map<String, String> map) {
+    if (map == null) throw new ArgumentError.notNull('map');
+    if (map.isEmpty) throw new ArgumentError('map must not be empty');
+    return _channel.invokeMethod('writeMap', {
+      'map': map,
+    });
+  }
+
   Future<String> read(String key) {
     if (key == null) throw new ArgumentError.notNull('key');
     return _channel.invokeMethod('read', {'key': key});
@@ -29,5 +37,11 @@ class FlutterSecureStorage {
   Future<Null> delete(String key) {
     if (key == null) throw new ArgumentError.notNull('key');
     return _channel.invokeMethod('delete', {'key': key});
+  }
+
+  Future<Null> deleteAll(List<String> keys) {
+    if (keys == null) throw new ArgumentError.notNull('keys');
+    if (keys.isEmpty) throw new ArgumentError('keys must not be empty');
+    return _channel.invokeMethod('deleteAll', {'keys': keys});
   }
 }

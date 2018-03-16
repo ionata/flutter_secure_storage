@@ -73,6 +73,25 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
     return value;
 }
 
+- (NSDictionary<NSString *, NSString *> *)getMap:(NSDictionary *)args result:(FlutterResult)result {
+    NSDictionary *map = args[@"map"];
+    if (![map isKindOfClass:[NSDictionary class]]) {
+        result([FlutterError errorWithCode:@"argument_error"
+                                   message:@"map must be a Map<String, String>"
+                                   details:nil]);
+        return nil;
+    }
+    for (NSString *key in map) {
+        if (![key isKindOfClass:[NSString class]] || ![map[key] isKindOfClass:[NSString class]]) {
+            result([FlutterError errorWithCode:@"argument_error"
+                                       message:@"all map keys and values must be of type String"
+                                       details:nil]);
+            return nil;
+        }
+    }
+    return map;
+}
+
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
     if (call.arguments == nil) {
         result([FlutterError errorWithCode:@"no_arguments"
@@ -117,6 +136,22 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
 
         result(values);
     } else
+    if ([@"writeMap" isEqualToString:call.method]) {
+        NSDictionary<NSString *, NSString *> *map = [self getMap:args result:result];
+        if (map == nil) return;
+
+        [self writeMap:map];
+
+        result(nil);
+    } else
+    if ([@"deleteAll" isEqualToString:call.method]) {
+        NSArray<NSString *> *keys = [self getKeys:args result:result];
+        if (keys == nil) return;
+
+        [self deleteAll:keys];
+
+        result(nil);
+    } else
         result(FlutterMethodNotImplemented);
 }
 
@@ -147,6 +182,12 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
     }
 
     return status;
+}
+
+- (void)writeMap:(NSDictionary<NSString *, NSString *> *)map {
+    for (NSString *key in map) {
+        [self write:map[key] forKey:key];
+    }
 }
 
 - (NSString *)read:(NSString *)key {
@@ -181,7 +222,7 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
     return values;
 }
 
-- (void)delete:(NSString *)key {
+- (OSStatus)delete:(NSString *)key {
     NSMutableDictionary *search = [self.query mutableCopy];
     search[(__bridge id)kSecAttrAccount] = key;
     search[(__bridge id)kSecReturnData] = (__bridge id)kCFBooleanTrue;
@@ -191,6 +232,18 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
     if (status != noErr) {
         NSLog(@"SecItemDelete status = %d", status);
     }
+
+    return status;
+}
+
+- (OSStatus)deleteAll:(NSArray<NSString *> *)keys {
+    for (NSString *key in keys) {
+        OSStatus status = [self delete:key];
+        if (status != noErr && status != errSecItemNotFound) {
+            return status;
+        }
+    }
+    return noErr;
 }
 
 @end
