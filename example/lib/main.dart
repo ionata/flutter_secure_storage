@@ -18,17 +18,17 @@ class _MyAppState extends State<MyApp> {
   final _key = "my_key1";
 
   Future read() async {
-    String value = await _storage.read(key: _key);
+    String value = await _storage.read(_key);
     print("value = $value");
     _textController.text = value;
   }
 
   Future write() async {
-    _storage.write(key: _key, value: _textController.text);
+    await _storage.write(_key, _textController.text);
   }
 
   Future delete() async {
-    await _storage.delete(key: _key);
+    await _storage.delete(_key);
     _textController.text = "";
   }
 
