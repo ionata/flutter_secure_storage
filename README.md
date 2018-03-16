@@ -11,14 +11,14 @@ A Flutter plugin to store data in secure storage:
 // Create storage
 final storage = new FlutterSecureStorage();
 
+// Write value 
+await storage.write('my-key', 'my-value');
+
 // Read value 
-String value = await storage.read(key: key);
+String value = await storage.read('my-key');
 
 // Delete value 
-await storage.delete(key: key);
-
-// Write value 
-storage.write(key: key, value: value);
+await storage.delete('my-key');
 ```
 
 ### Configure Android version 
