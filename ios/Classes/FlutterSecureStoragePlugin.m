@@ -34,7 +34,7 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
     NSString *key = args[@"key"];
     if (![key isKindOfClass:[NSString class]]) {
         result([FlutterError errorWithCode:@"argument_error"
-                                   message:@"key must be a string"
+                                   message:@"key must be a String"
                                    details:nil]);
         return nil;
     }
@@ -45,7 +45,7 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
     NSArray<NSString *> *keys = args[@"keys"];
     if (![keys isKindOfClass:[NSArray class]]) {
         result([FlutterError errorWithCode:@"argument_error"
-                                   message:@"keys must be an array"
+                                   message:@"keys must be a List<String>"
                                    details:nil]);
         return nil;
     }
@@ -53,7 +53,7 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
     for (NSString *key in keys) {
         if (![key isKindOfClass:[NSString class]]) {
             result([FlutterError errorWithCode:@"argument_error"
-                                       message:@"all keys must be strings"
+                                       message:@"all keys must be of type String"
                                        details:nil]);
             return nil;
         }
@@ -66,7 +66,7 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
     NSString *value = args[@"value"];
     if (![value isKindOfClass:[NSString class]]) {
         result([FlutterError errorWithCode:@"argument_error"
-                                   message:@"value must be a string"
+                                   message:@"value must be a String"
                                    details:nil]);
         return nil;
     }
