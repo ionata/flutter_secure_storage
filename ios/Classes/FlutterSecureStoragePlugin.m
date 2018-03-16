@@ -82,7 +82,9 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
         return nil;
     }
     for (NSString *key in map) {
-        if (![key isKindOfClass:[NSString class]] || ![map[key] isKindOfClass:[NSString class]]) {
+        if (![key isKindOfClass:[NSString class]] || (
+            ![map[key] isKindOfClass:[NSString class]] &&
+            ![map[key] isKindOfClass:[NSNull class]])) {
             result([FlutterError errorWithCode:@"argument_error"
                                        message:@"all map keys and values must be of type String"
                                        details:nil]);
@@ -186,7 +188,11 @@ static NSString *const CHANNEL_NAME = @"plugins.it_nomads.com/flutter_secure_sto
 
 - (void)writeMap:(NSDictionary<NSString *, NSString *> *)map {
     for (NSString *key in map) {
-        [self write:map[key] forKey:key];
+        if ([map[key] isKindOfClass:[NSNull class]]) {
+            [self delete:key];
+        } else {
+            [self write:map[key] forKey:key];
+        }
     }
 }
 

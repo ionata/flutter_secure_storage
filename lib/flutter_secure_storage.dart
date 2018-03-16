@@ -18,6 +18,7 @@ class FlutterSecureStorage {
   }
 
   /// Writes a map of key/value pairs to the store
+  /// If any of the values is null, the corresponding key will be deleted
   Future<Null> writeMap(Map<String, String> map) {
     if (map == null) throw new ArgumentError.notNull('map');
     if (map.isEmpty) throw new ArgumentError('map must not be empty');
