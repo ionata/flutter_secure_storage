@@ -1,5 +1,6 @@
 package com.it_nomads.fluttersecurestorage;
 
+import android.os.Build;
 import android.app.Activity;
 import android.content.Context;
 import android.util.Base64;
@@ -10,6 +11,7 @@ import com.it_nomads.fluttersecurestorage.ciphers.StorageCipher18Implementation;
 
 import java.nio.charset.Charset;
 import java.util.Map;
+import java.util.HashMap;
 
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -25,45 +27,60 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
   private final android.content.SharedPreferences preferences;
   private final android.content.SharedPreferences.Editor editor;
   private final Charset charset;
-  private final StorageCipher storageCipher;
+
+  private final Map<String, StorageCipher> storageCipherMap = new HashMap<>();
 
   public static void registerWith(Registrar registrar) {
-    try {
-      FlutterSecureStoragePlugin plugin = new FlutterSecureStoragePlugin(registrar.activity());
-      final MethodChannel channel = new MethodChannel(registrar.messenger(), "plugins.it_nomads.com/flutter_secure_storage");
-      channel.setMethodCallHandler(plugin);
-    } catch (Exception e) {
-      Log.e("FlutterSecureStoragePl", "Registration failed", e);
-    }
+    FlutterSecureStoragePlugin plugin = new FlutterSecureStoragePlugin(registrar.activity());
+    final MethodChannel channel = new MethodChannel(registrar.messenger(), "plugins.it_nomads.com/flutter_secure_storage");
+    channel.setMethodCallHandler(plugin);
   }
 
-  private FlutterSecureStoragePlugin(Activity activity) throws Exception {
+  private FlutterSecureStoragePlugin(Activity activity) {
     preferences = activity.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
     editor = preferences.edit();
     charset = Charset.forName("UTF-8");
-    storageCipher = new StorageCipher18Implementation(activity);
+
+    try {
+      addStorageCipher(new StorageCipher18Implementation(activity));
+    } catch (Exception e) {
+      Log.e("no_storage_cipher_18",
+            "Could not add StorageCipher18Implementation",
+             e);
+    }
+  }
+
+  private void addStorageCipher(StorageCipher storage) {
+    storageCipherMap.put(storage.getStorageName(), storage);
   }
 
   @Override
   public void onMethodCall(MethodCall call, Result result) {
     try {
-      Map arguments = (Map) call.arguments;
-      String rawKey = (String) arguments.get("key");
-      String key = addPrefixToKey(rawKey);
+      Map arguments;
+      if (call.arguments instanceof Map) {
+        arguments = (Map) call.arguments;
+      } else {
+        result.error("No arguments", call.method, null);
+        return;
+      }
 
       switch (call.method) {
         case "write": {
+          String key = (String) arguments.get("key");
           String value = (String) arguments.get("value");
           write(key, value);
           result.success(null);
           break;
         }
         case "read": {
+          String key = (String) arguments.get("key");
           String value = read(key);
           result.success(value);
           break;
         }
         case "delete": {
+          String key = (String) arguments.get("key");
           delete(key);
           result.success(null);
           break;
@@ -78,16 +95,40 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
     }
   }
 
-  private void write(String key, String value) throws Exception {
+  private void write(String rawKey, String value) throws Exception {
+    StorageCipher storageCipher = getStorageCipher();
+    if (storageCipher == null) {
+      throw new Exception("No storage cipher. Unsupported Android SDK " + Build.VERSION.SDK_INT);
+    }
+
+    String key = addPrefixToKey(rawKey);
     byte[] result = storageCipher.encrypt(value.getBytes(charset));
-    editor.putString(key, Base64.encodeToString(result, 0));
+    String storageName = storageCipher.getStorageName();
+    String encodedPair = ':' + storageName + ':' + Base64.encodeToString(result, 0);
+    editor.putString(key, encodedPair);
     editor.apply();
   }
 
-  private String read(String key) throws Exception {
-    String encoded = preferences.getString(key, null);
-    if (encoded == null) {
+  private String read(String rawKey) throws Exception {
+    String key = addPrefixToKey(rawKey);
+    String encodedPair = preferences.getString(key, null);
+    if (encodedPair == null) {
       return null;
+    }
+
+    StorageCipher storageCipher;
+    String encoded;
+    if (encodedPair.startsWith(":")) {
+      String[] parts = encodedPair.split(":", 3);
+      storageCipher = getStorageCipher(parts[1]);
+      encoded = parts[2];
+    } else {
+      storageCipher = getStorageCipher(StorageCipher18Implementation.CIPHER_STORAGE_NAME);
+      encoded = encodedPair;
+    }
+
+    if (storageCipher == null) {
+      throw new Exception("No storage cipher. Unsupported Android SDK " + Build.VERSION.SDK_INT);
     }
 
     byte[] data = Base64.decode(encoded, 0);
@@ -95,13 +136,22 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
 
     return new String(result, charset);
   }
-
-  private void delete(String key) throws Exception {
+  
+  private void delete(String rawKey) throws Exception {
+    String key = addPrefixToKey(rawKey);
     editor.remove(key);
     editor.apply();
   }
 
   private String addPrefixToKey(String key) {
     return KEY_PREFIX + "_" + key;
+  }
+
+  private StorageCipher getStorageCipher() {
+    return getStorageCipher(StorageCipher18Implementation.CIPHER_STORAGE_NAME);
+  }
+
+  private StorageCipher getStorageCipher(String storageCipherName) {
+    return storageCipherMap.get(storageCipherName);
   }
 }
