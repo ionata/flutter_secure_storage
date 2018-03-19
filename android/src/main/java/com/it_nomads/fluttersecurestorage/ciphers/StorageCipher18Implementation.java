@@ -20,9 +20,16 @@ import javax.security.auth.x500.X500Principal;
 public class StorageCipher18Implementation implements StorageCipher {
 
   private final String KEY_ALIAS;
+
   private static final String KEYSTORE_PROVIDER_ANDROID = "AndroidKeyStore";
   private static final String TYPE_RSA = "RSA";
 
+  public static final String CIPHER_STORAGE_NAME = "KeystoreRSAECB";
+
+  @Override
+  public String getStorageName() {
+    return CIPHER_STORAGE_NAME;
+  }
 
   public StorageCipher18Implementation(Context context) throws Exception {
     KEY_ALIAS = context.getPackageName() + ".FlutterSecureStoragePluginKey";
@@ -106,7 +113,7 @@ public class StorageCipher18Implementation implements StorageCipher {
           .setCertificateSubject(new X500Principal("CN=" + KEY_ALIAS))
           .setDigests(KeyProperties.DIGEST_SHA256)
           .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
-          .setCertificateSerialNumber(BigInteger.valueOf(1))
+          .setCertificateSerialNumber(BigInteger.ONE)
           .setCertificateNotBefore(start.getTime())
           .setCertificateNotAfter(end.getTime())
           .build();
@@ -115,7 +122,7 @@ public class StorageCipher18Implementation implements StorageCipher {
     kpGenerator.generateKeyPair();
   }
 
-  static public boolean isAvailable() {
-    return Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR2;
-  }
+//  static public boolean isAvailable() {
+//    return Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN_MR2;
+//  }
 }
