@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-void main() {
-  runApp(new MyApp());
-}
+void main() => runApp(new MyApp());
 
 class MyApp extends StatefulWidget {
   @override
@@ -18,13 +16,23 @@ class _MyAppState extends State<MyApp> {
   final _key = "my_key1";
 
   Future read() async {
-    String value = await _storage.read(_key);
-    print("value = $value");
-    _textController.text = value;
+    try {
+      String value = await _storage.read(_key);
+      print("value = $value");
+      _textController.text = value;
+    } catch (e) {
+      print('Caught exception:');
+      print(e);
+    }
   }
 
   Future write() async {
-    await _storage.write(_key, _textController.text);
+    try {
+      await _storage.write(_key, _textController.text);
+    } catch (e) {
+      print('Caught exception:');
+      print(e);
+    }
   }
 
   Future delete() async {
@@ -37,7 +45,7 @@ class _MyAppState extends State<MyApp> {
     return new MaterialApp(
       home: new Scaffold(
         appBar: new AppBar(
-          title: new Text('Plugin example app'),
+          title: const Text('Plugin example app'),
         ),
         body: new Center(
           child: new Column(
@@ -53,11 +61,14 @@ class _MyAppState extends State<MyApp> {
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   new RaisedButton(
-                      onPressed: () => read(), child: new Text("Read")),
+                      onPressed: () => read(),
+                      child: const Text("Read")),
                   new RaisedButton(
-                      onPressed: () => write(), child: new Text("Write")),
+                      onPressed: () => write(),
+                      child: const Text("Write")),
                   new RaisedButton(
-                      onPressed: () => delete(), child: new Text("Delete")),
+                      onPressed: () => delete(),
+                      child: const Text("Delete")),
                 ],
               ),
               new Row(
@@ -65,15 +76,15 @@ class _MyAppState extends State<MyApp> {
                 children: <Widget>[
                   new RaisedButton(
                       onPressed: () => _textController.text = "Value1",
-                      child: new Text("Value1")),
+                      child: const Text("Value1")),
                   new RaisedButton(
                       onPressed: () => _textController.text = "Value2",
-                      child: new Text("Value2")),
+                      child: const Text("Value2")),
                   new RaisedButton(
                       onPressed: () => _textController.text = "Value3",
-                      child: new Text("Value3")),
+                      child: const Text("Value3")),
                 ],
-              )
+              ),
             ],
           ),
         ),
