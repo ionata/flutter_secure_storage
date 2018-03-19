@@ -85,6 +85,24 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
           result.success(null);
           break;
         }
+        case "readAll": {
+          String[] keys = (String[]) arguments.get("keys");
+          String[] values = readAll(keys);
+          result.success(values);
+          break;
+        }
+        case "writeMap": {
+          Map map = (Map) arguments.get("map");
+          writeMap(map);
+          result.success(null);
+          break;
+        }
+        case "deleteAll": {
+          String[] keys = (String[]) arguments.get("keys");
+          deleteAll(keys);
+          result.success(null);
+          break;
+        }
         default:
           result.notImplemented();
           break;
@@ -107,6 +125,18 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
     String encodedPair = ':' + storageName + ':' + Base64.encodeToString(result, 0);
     editor.putString(key, encodedPair);
     editor.apply();
+  }
+
+  private void writeMap(Map<String, String> map) throws Exception {
+    for (String rawKey : map.keySet()) {
+      String value = map.get(rawKey);
+
+      if (value == null) {
+        delete(rawKey);
+      } else {
+        write(rawKey, value);
+      }
+    }
   }
 
   private String read(String rawKey) throws Exception {
@@ -137,10 +167,26 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
     return new String(result, charset);
   }
   
+  private String[] readAll(String[] rawKeys) throws Exception {
+    String[] values = new String[rawKeys.length];
+
+    for (int i = 0; i < rawKeys.length; i++) {
+      values[i] = read(rawKeys[i]);
+    }
+
+    return values;
+  }
+
   private void delete(String rawKey) throws Exception {
     String key = addPrefixToKey(rawKey);
     editor.remove(key);
     editor.apply();
+  }
+
+  private void deleteAll(String[] rawKeys) throws Exception {
+    for (String rawKey : rawKeys) {
+      delete(rawKey);
+    }
   }
 
   private String addPrefixToKey(String key) {
