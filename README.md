@@ -7,6 +7,11 @@ A Flutter plugin to store data in secure storage:
 
 *Note* KeyStore was introduced in Android 4.3 (API level 18). The plugin wouldn't work for earlier versions.
 
+## Breaking changes
+
+* Android
+  - [5fefab][5fefab] This fork, internally, stores the used cipher in the value, in the format ':cipher:data'
+
 ## Getting Started
 
 ```dart
@@ -72,3 +77,5 @@ android {
 
 }
 ```
+
+[5fefab]: https://github.com/ionata/flutter_secure_storage/commit/5fefabfd1cf49f2dcae547a130f8b970ee4bec0d
