@@ -11,7 +11,7 @@ class FlutterSecureStorage {
   Future<Null> write(String key, String value) async {
     if (key == null) throw new ArgumentError.notNull('key');
     if (value == null) throw new ArgumentError.notNull('value');
-    return _channel.invokeMethod('write', {
+    await _channel.invokeMethod('write', {
       'key': key,
       'value': value,
     });
@@ -22,7 +22,7 @@ class FlutterSecureStorage {
   Future<Null> writeMap(Map<String, String> map) async {
     if (map == null) throw new ArgumentError.notNull('map');
     if (map.isEmpty) throw new ArgumentError('map must not be empty');
-    return _channel.invokeMethod('writeMap', {
+    await _channel.invokeMethod('writeMap', {
       'map': map,
     });
   }
@@ -45,13 +45,13 @@ class FlutterSecureStorage {
   /// Deletes a value, associated with a key from the store
   Future<Null> delete(String key) async {
     if (key == null) throw new ArgumentError.notNull('key');
-    return _channel.invokeMethod('delete', {'key': key});
+    await _channel.invokeMethod('delete', {'key': key});
   }
 
   /// Deletes all values, associated with a given list of keys from the store
   Future<Null> deleteAll(List<String> keys) async {
     if (keys == null) throw new ArgumentError.notNull('keys');
     if (keys.isEmpty) throw new ArgumentError('keys must not be empty');
-    return _channel.invokeMethod('deleteAll', {'keys': keys});
+    await _channel.invokeMethod('deleteAll', {'keys': keys});
   }
 }
