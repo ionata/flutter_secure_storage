@@ -10,6 +10,7 @@ import com.it_nomads.fluttersecurestorage.ciphers.StorageCipher;
 import com.it_nomads.fluttersecurestorage.ciphers.StorageCipher18Implementation;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -39,6 +40,7 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
   private FlutterSecureStoragePlugin(Activity activity) {
     preferences = activity.getSharedPreferences(SHARED_PREFERENCES_NAME, Context.MODE_PRIVATE);
     editor = preferences.edit();
+    editor.apply();
     charset = Charset.forName("UTF-8");
 
     try {
@@ -60,6 +62,10 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
       Map arguments;
       if (call.arguments instanceof Map) {
         arguments = (Map) call.arguments;
+        if (arguments.size() == 0) {
+          result.error("No arguments", call.method, null);
+          return;
+        }
       } else {
         result.error("No arguments", call.method, null);
         return;
@@ -67,38 +73,38 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
 
       switch (call.method) {
         case "write": {
-          String key = (String) arguments.get("key");
-          String value = (String) arguments.get("value");
+          String key = call.argument("key");
+          String value = call.argument("value");
           write(key, value);
           result.success(null);
           break;
         }
         case "read": {
-          String key = (String) arguments.get("key");
+          String key = call.argument("key");
           String value = read(key);
           result.success(value);
           break;
         }
         case "delete": {
-          String key = (String) arguments.get("key");
+          String key = call.argument("key");
           delete(key);
           result.success(null);
           break;
         }
         case "readAll": {
-          String[] keys = (String[]) arguments.get("keys");
-          String[] values = readAll(keys);
+          ArrayList<String> keys = call.argument("keys");
+          ArrayList<String> values = readAll(keys);
           result.success(values);
           break;
         }
         case "writeMap": {
-          Map map = (Map) arguments.get("map");
+          Map<String, String> map = call.argument("map");
           writeMap(map);
           result.success(null);
           break;
         }
         case "deleteAll": {
-          String[] keys = (String[]) arguments.get("keys");
+          ArrayList<String> keys = call.argument("keys");
           deleteAll(keys);
           result.success(null);
           break;
@@ -167,23 +173,23 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
     return new String(result, charset);
   }
   
-  private String[] readAll(String[] rawKeys) throws Exception {
-    String[] values = new String[rawKeys.length];
+  private ArrayList<String> readAll(ArrayList<String> rawKeys) throws Exception {
+    ArrayList<String> values = new ArrayList<>();
 
-    for (int i = 0; i < rawKeys.length; i++) {
-      values[i] = read(rawKeys[i]);
+    for (String rawKey : rawKeys) {
+      values.add(read(rawKey));
     }
 
     return values;
   }
 
-  private void delete(String rawKey) throws Exception {
+  private void delete(String rawKey) {
     String key = addPrefixToKey(rawKey);
     editor.remove(key);
     editor.apply();
   }
 
-  private void deleteAll(String[] rawKeys) throws Exception {
+  private void deleteAll(ArrayList<String> rawKeys) {
     for (String rawKey : rawKeys) {
       delete(rawKey);
     }
