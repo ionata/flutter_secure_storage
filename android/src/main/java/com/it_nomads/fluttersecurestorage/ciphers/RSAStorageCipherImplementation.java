@@ -18,7 +18,7 @@ import java.util.Calendar;
 import javax.crypto.Cipher;
 import javax.security.auth.x500.X500Principal;
 
-public class StorageCipher18Implementation implements StorageCipher {
+public class RSAStorageCipherImplementation implements StorageCipher {
 
   private final String KEY_ALIAS;
 
@@ -32,7 +32,7 @@ public class StorageCipher18Implementation implements StorageCipher {
     return CIPHER_STORAGE_NAME;
   }
 
-  public StorageCipher18Implementation(Context context) throws Exception {
+  public RSAStorageCipherImplementation(Context context) throws Exception {
     KEY_ALIAS = context.getPackageName() + ".FlutterSecureStoragePluginKey";
     createKeysIfNeeded(context);
   }

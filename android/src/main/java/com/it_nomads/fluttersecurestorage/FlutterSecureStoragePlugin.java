@@ -6,8 +6,8 @@ import android.content.Context;
 import android.util.Base64;
 import android.util.Log;
 
+import com.it_nomads.fluttersecurestorage.ciphers.RSAStorageCipherImplementation;
 import com.it_nomads.fluttersecurestorage.ciphers.StorageCipher;
-import com.it_nomads.fluttersecurestorage.ciphers.StorageCipher18Implementation;
 import com.it_nomads.fluttersecurestorage.ciphers.AESStorageCipherImplementation;
 
 import java.nio.charset.Charset;
@@ -44,13 +44,13 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
     editor.apply();
     charset = Charset.forName("UTF-8");
 
-    StorageCipher18Implementation rsaCipher = null;
+    RSAStorageCipherImplementation rsaCipher = null;
     try {
-      rsaCipher = new StorageCipher18Implementation(activity);
+      rsaCipher = new RSAStorageCipherImplementation(activity);
       addStorageCipher(rsaCipher);
     } catch (Exception e) {
-      Log.e("no_storage_cipher_18",
-            "Could not add StorageCipher18Implementation",
+      Log.e("no_rsa_storage_cipher",
+            "Could not add RSAStorageCipherImplementation",
              e);
     }
 
@@ -132,7 +132,7 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
   }
 
   private void write(String rawKey, String value) throws Exception {
-    StorageCipher storageCipher = getStorageCipher();
+    StorageCipher storageCipher = getDefaultStorageCipher();
     if (storageCipher == null) {
       throw new Exception("No storage cipher. Unsupported Android SDK " + Build.VERSION.SDK_INT);
     }
@@ -181,7 +181,7 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
       storageCipher = getStorageCipher(parts[1]);
       encoded = parts[2];
     } else {
-      storageCipher = getStorageCipher(StorageCipher18Implementation.CIPHER_STORAGE_NAME);
+      storageCipher = getStorageCipher(RSAStorageCipherImplementation.CIPHER_STORAGE_NAME);
       encoded = encodedPair;
     }
 
@@ -227,7 +227,7 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
     return KEY_PREFIX + "_" + key;
   }
 
-  private StorageCipher getStorageCipher() {
+  private StorageCipher getDefaultStorageCipher() {
     return getStorageCipher(AESStorageCipherImplementation.CIPHER_STORAGE_NAME);
   }
 

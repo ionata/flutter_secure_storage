@@ -27,7 +27,7 @@ public class AESStorageCipherImplementation implements StorageCipher {
     return CIPHER_STORAGE_NAME;
   }
 
-  public AESStorageCipherImplementation(SharedPreferences preferences, StorageCipher18Implementation rsaCipher) throws Exception {
+  public AESStorageCipherImplementation(SharedPreferences preferences, RSAStorageCipherImplementation rsaCipher) throws Exception {
     secureRandom = new SecureRandom();
 
     String aesKey = preferences.getString(AES_PREFERENCES_KEY, null);
