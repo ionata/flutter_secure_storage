@@ -7,6 +7,7 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 
 import java.math.BigInteger;
+import java.security.Key;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -34,6 +35,22 @@ public class StorageCipher18Implementation implements StorageCipher {
   public StorageCipher18Implementation(Context context) throws Exception {
     KEY_ALIAS = context.getPackageName() + ".FlutterSecureStoragePluginKey";
     createKeysIfNeeded(context);
+  }
+
+  public byte[] wrap(Key key) throws Exception {
+    PublicKey publicKey = getEntry().getCertificate().getPublicKey();
+    Cipher cipher = getCipher();
+    cipher.init(Cipher.WRAP_MODE, publicKey);
+
+    return cipher.wrap(key);
+  }
+
+  public Key unwrap(byte[] wrappedKey, String algorithm) throws Exception {
+    PrivateKey privateKey = getEntry().getPrivateKey();
+    Cipher cipher = getCipher();
+    cipher.init(Cipher.UNWRAP_MODE, privateKey);
+
+    return cipher.unwrap(wrappedKey, algorithm, Cipher.SECRET_KEY);
   }
 
   @Override
