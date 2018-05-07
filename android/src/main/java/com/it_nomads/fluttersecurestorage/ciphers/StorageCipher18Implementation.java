@@ -113,7 +113,7 @@ public class StorageCipher18Implementation implements StorageCipher {
           .setCertificateSubject(new X500Principal("CN=" + KEY_ALIAS))
           .setDigests(KeyProperties.DIGEST_SHA256)
           .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
-          .setCertificateSerialNumber(BigInteger.ONE)
+          .setCertificateSerialNumber(BigInteger.valueOf(1))
           .setCertificateNotBefore(start.getTime())
           .setCertificateNotAfter(end.getTime())
           .build();
