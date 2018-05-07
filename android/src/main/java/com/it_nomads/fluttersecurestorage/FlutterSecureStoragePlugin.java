@@ -126,7 +126,17 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
     }
 
     String key = addPrefixToKey(rawKey);
-    byte[] result = storageCipher.encrypt(value.getBytes(charset));
+    byte[] result;
+
+    try {
+      result = storageCipher.encrypt(value.getBytes(charset));
+    } catch (Exception e) {
+      Log.e("unable_to_encrypt",
+              "Could not encrypt with storage: " + storageCipher.getStorageName(),
+              e);
+      throw e;
+    }
+
     String storageName = storageCipher.getStorageName();
     String encodedPair = ':' + storageName + ':' + Base64.encodeToString(result, 0);
     editor.putString(key, encodedPair);
@@ -168,9 +178,15 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
     }
 
     byte[] data = Base64.decode(encoded, 0);
-    byte[] result = storageCipher.decrypt(data);
-
-    return new String(result, charset);
+    try {
+      byte[] result = storageCipher.decrypt(data);
+      return new String(result, charset);
+    } catch (Exception e) {
+      Log.e("unable_to_decrypt",
+              "Could not decrypt with storage: " + storageCipher.getStorageName(),
+              e);
+      throw e;
+    }
   }
   
   private ArrayList<String> readAll(ArrayList<String> rawKeys) throws Exception {
