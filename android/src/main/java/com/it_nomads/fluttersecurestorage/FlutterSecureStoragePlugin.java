@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.it_nomads.fluttersecurestorage.ciphers.StorageCipher;
 import com.it_nomads.fluttersecurestorage.ciphers.StorageCipher18Implementation;
+import com.it_nomads.fluttersecurestorage.ciphers.AESStorageCipherImplementation;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -43,12 +44,23 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
     editor.apply();
     charset = Charset.forName("UTF-8");
 
+    StorageCipher18Implementation rsaCipher = null;
     try {
-      addStorageCipher(new StorageCipher18Implementation(activity));
+      rsaCipher = new StorageCipher18Implementation(activity);
+      addStorageCipher(rsaCipher);
     } catch (Exception e) {
       Log.e("no_storage_cipher_18",
             "Could not add StorageCipher18Implementation",
              e);
+    }
+
+    try {
+      if (rsaCipher == null) throw new Exception("No RSA Cipher");
+      addStorageCipher(new AESStorageCipherImplementation(preferences, rsaCipher));
+    } catch (Exception e) {
+      Log.e("no_aes_storage_cipher",
+              "Could not add AESStorageCipherImplementation",
+              e);
     }
   }
 
