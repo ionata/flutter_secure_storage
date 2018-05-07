@@ -228,7 +228,7 @@ public class FlutterSecureStoragePlugin implements MethodCallHandler {
   }
 
   private StorageCipher getStorageCipher() {
-    return getStorageCipher(StorageCipher18Implementation.CIPHER_STORAGE_NAME);
+    return getStorageCipher(AESStorageCipherImplementation.CIPHER_STORAGE_NAME);
   }
 
   private StorageCipher getStorageCipher(String storageCipherName) {
