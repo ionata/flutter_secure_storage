@@ -39,7 +39,7 @@ class FlutterSecureStorage {
     if (keys == null) throw new ArgumentError.notNull('keys');
     if (keys.isEmpty) throw new ArgumentError('keys must not be empty');
     final List values = await _channel.invokeMethod('readAll', {'keys': keys});
-    return values.retype<String>();
+    return values.cast<String>();
   }
 
   /// Deletes a value, associated with a key from the store
